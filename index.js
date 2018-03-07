@@ -32,14 +32,34 @@ var HttpRequest = class HttpRequest {
                             else{
                                 resolve(new Response(false, request, err.message));
                             }
-                        } 
+                        }
                         resolve(new Response(true, response, "Success"));
                     }
                     else{
-                        resolve(new Response(false, request, request.statusText));
+                        if(request.statusText != ""){
+                            resolve(new Response(false, request,  request.status + " - " + request.statusText));
+                        }
+                        else{
+                            try{
+                                var response = request.status + " - " + JSON.parse(request.response).message;
+                            }
+                            catch(err){
+                                if(err instanceof SyntaxError){
+                                    var response =  request.status + " - " + request.response;
+                                }
+                                else{
+                                    resolve(new Response(false, request, err.message));
+                                }
+                            } 
+                            resolve(new Response(false, request, response));
+                        }
                     }
                 };
                 
+                request.onerror = function(){
+                    resolve(new Response(false, request, "Request Failed"));
+                };
+
                 request.ontimeout = function(){
                     resolve(new Response(false, request, "Request Timed Out"));
                 };
